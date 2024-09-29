@@ -1,0 +1,135 @@
+-- Criação do banco de dados
+CREATE DATABASE restaurante;
+
+-- Utilizando o banco de dados criado
+USE restaurante;
+
+-- Criação das tabelas
+
+-- Criar tabela Unidades
+CREATE TABLE Unidades (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    localizacao VARCHAR(255) NOT NULL
+);
+
+-- Criar tabela Funcionários
+CREATE TABLE Funcionarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    cargo VARCHAR(100) NOT NULL,
+    unidade_id INT,
+    FOREIGN KEY (unidade_id) REFERENCES Unidades(id) ON DELETE CASCADE
+);
+
+-- Inserir dados na tabela Unidades
+INSERT INTO Unidades (nome, localizacao) VALUES
+('Unidade A', 'Rua 1, Bairro A'),
+('Unidade B', 'Rua 2, Bairro B');
+
+-- Inserir dados na tabela Funcionários
+INSERT INTO Funcionarios (nome, cargo, unidade_id) VALUES
+('João Silva', 'Gerente', 1),
+('Maria Oliveira', 'Assistente', 1),
+('Carlos Pereira', 'Analista', 2);
+
+CREATE TABLE Clientes (
+    ClienteID INT PRIMARY KEY AUTO_INCREMENT,
+    Nome VARCHAR(100) NOT NULL,
+    Telefone VARCHAR(15),
+    Email VARCHAR(100)
+);
+
+CREATE TABLE Cardapio (
+    ItemID INT PRIMARY KEY AUTO_INCREMENT,
+    Nome VARCHAR(100) NOT NULL,
+    Descricao TEXT,
+    Preco DECIMAL(10, 2)
+);
+
+CREATE TABLE Pedidos (
+    PedidoID INT PRIMARY KEY AUTO_INCREMENT,
+    UnidadeID INT,
+    FuncionarioID INT,
+    ClienteID INT,
+    DataPedido DATETIME NOT NULL,
+    Total DECIMAL(10, 2),
+    FOREIGN KEY (UnidadeID) REFERENCES Unidades(UnidadeID),
+    FOREIGN KEY (FuncionarioID) REFERENCES Funcionarios(FuncionarioID),
+    FOREIGN KEY (ClienteID) REFERENCES Clientes(ClienteID)
+);
+
+CREATE TABLE DetalhesPedido (
+    DetalheID INT PRIMARY KEY AUTO_INCREMENT,
+    PedidoID INT,
+    ItemID INT,
+    Quantidade INT,
+    PrecoUnitario DECIMAL(10, 2),
+    FOREIGN KEY (PedidoID) REFERENCES Pedidos(PedidoID),
+    FOREIGN KEY (ItemID) REFERENCES Cardapio(ItemID)
+);
+
+-- Inserção de dados nas tabelas
+
+-- Inserir dados na tabela Unidades
+INSERT INTO Unidades (Nome, Endereco, Telefone, HorarioAbertura, HorarioFechamento)
+VALUES ('Restaurante Centro', 'Rua Principal, 123', '123456789', '08:00:00', '22:00:00');
+
+INSERT INTO Unidades (Nome, Endereco, Telefone, HorarioAbertura, HorarioFechamento)
+VALUES ('Restaurante Norte', 'Avenida Norte, 456', '987654321', '09:00:00', '23:00:00');
+
+-- Inserir dados na tabela Funcionarios
+INSERT INTO Funcionarios (UnidadeID, Nome, Cargo, Telefone, HorarioEntrada, HorarioSaida, Salario)
+VALUES (1, 'João Silva', 'Garçom', '987654321', '10:00:00', '18:00:00', 1800.50);
+
+INSERT INTO Funcionarios (UnidadeID, Nome, Cargo, Telefone, HorarioEntrada, HorarioSaida, Salario)
+VALUES (2, 'Maria Santos', 'Cozinheira', '123456789', '08:00:00', '16:00:00', 2200.75);
+
+-- Inserir dados na tabela Clientes
+INSERT INTO Clientes (Nome, Telefone, Email)
+VALUES ('Carlos Pereira', '999999999', 'carlos@email.com');
+
+INSERT INTO Clientes (Nome, Telefone, Email)
+VALUES ('Ana Costa', '888888888', 'ana@email.com');
+
+-- Inserir dados na tabela Cardapio
+INSERT INTO Cardapio (Nome, Descricao, Preco)
+VALUES ('Pizza Margherita', 'Pizza tradicional com molho de tomate e mussarela', 29.90);
+
+INSERT INTO Cardapio (Nome, Descricao, Preco)
+VALUES ('Hambúrguer Artesanal', 'Hambúrguer feito com carne bovina, queijo e bacon', 24.50);
+
+-- Inserir dados na tabela Pedidos
+INSERT INTO Pedidos (UnidadeID, FuncionarioID, ClienteID, DataPedido, Total)
+VALUES (1, 1, 1, '2024-09-28 12:30:00', 59.80);
+
+INSERT INTO Pedidos (UnidadeID, FuncionarioID, ClienteID, DataPedido, Total)
+VALUES (2, 2, 2, '2024-09-28 13:45:00', 24.50);
+
+-- Inserir dados na tabela DetalhesPedido
+INSERT INTO DetalhesPedido (PedidoID, ItemID, Quantidade, PrecoUnitario)
+VALUES (1, 1, 2, 29.90);
+
+INSERT INTO DetalhesPedido (PedidoID, ItemID, Quantidade, PrecoUnitario)
+VALUES (2, 2, 1, 24.50);
+
+-- Consulta para exibir todos os dados adicionados
+SELECT 
+    p.PedidoID, p.DataPedido, p.Total AS TotalPedido,
+    c.ClienteID, c.Nome AS NomeCliente, c.Telefone AS TelefoneCliente, c.Email AS EmailCliente,
+    f.FuncionarioID, f.Nome AS NomeFuncionario, f.Cargo AS CargoFuncionario, f.Telefone AS TelefoneFuncionario,
+    u.UnidadeID, u.Nome AS NomeUnidade, u.Endereco AS EnderecoUnidade, u.Telefone AS TelefoneUnidade,
+    u.HorarioAbertura, u.HorarioFechamento,
+    dp.Quantidade, dp.PrecoUnitario, 
+    ca.ItemID, ca.Nome AS NomeItem, ca.Descricao AS DescricaoItem, ca.Preco AS PrecoItem
+FROM Pedidos p
+-- Relacionando Pedidos com Clientes
+JOIN Clientes c ON p.ClienteID = c.ClienteID
+-- Relacionando Pedidos com Funcionários
+JOIN Funcionarios f ON p.FuncionarioID = f.FuncionarioID
+-- Relacionando Pedidos com Unidades
+JOIN Unidades u ON p.UnidadeID = u.UnidadeID
+-- Relacionando Pedidos com DetalhesPedido
+JOIN DetalhesPedido dp ON p.PedidoID = dp.PedidoID
+-- Relacionando DetalhesPedido com Itens do Cardápio
+JOIN Cardapio ca ON dp.ItemID = ca.ItemID;
